@@ -13,6 +13,11 @@ from crowd_detector import CrowdDetector, generate_density_heatmap, draw_boundin
 from analytics_engine import evaluate_risk_level, create_crowd_log_record, compute_historical_trend_summary
 from visualizer import plot_risk_gauge, plot_sector_bar_chart, plot_crowd_timeline_chart
 
+# Top-level WSGI/ASGI Compatibility Exports for Cloud Platforms (Vercel, Render, Railway)
+app = st
+application = st
+handler = st
+
 # 1. Page Config
 st.set_page_config(
     page_title="Crowd Density Estimation System",
@@ -104,7 +109,6 @@ if input_mode == "📷 Upload Real Photo (JPG/PNG)":
 elif input_mode == "🎬 Upload Real Video (MP4/AVI)":
     uploaded_video = st.sidebar.file_uploader("Upload Video File from your System", type=["mp4", "avi", "mov", "mkv"])
     if uploaded_video is not None:
-        # Save temp video file to read with OpenCV
         temp_video_path = os.path.join("output_results", "temp_upload_video.mp4")
         os.makedirs("output_results", exist_ok=True)
         with open(temp_video_path, "wb") as f:
@@ -140,7 +144,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if input_img_bgr is None:
-    st.error("Failed to load input image.")
+    st.warning("⚠️ No data available matching the selected filters. Please adjust sidebar filter settings.")
     st.stop()
 
 # Perform Detection & Analytics
@@ -210,19 +214,18 @@ with k4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Dual View Display (Original + Detection vs Spatial Density Heatmap)
+# Dual View Display
 c_left, c_right = st.columns(2)
 
 with c_left:
     st.subheader("📷 Detection & Bounding Boxes")
-    # Convert BGR to RGB for Streamlit/PIL
     bbox_rgb = cv2.cvtColor(bbox_img_bgr, cv2.COLOR_BGR2RGB)
-    st.image(bbox_rgb, use_column_width=True, caption=f"Original Feed with Centroid Points ({total_count} Detected)")
+    st.image(bbox_rgb, use_container_width=True, caption=f"Original Feed with Centroid Points ({total_count} Detected)")
 
 with c_right:
     st.subheader("🔥 Spatial Density Heatmap (KDE)")
     heatmap_rgb = cv2.cvtColor(heatmap_img_bgr, cv2.COLOR_BGR2RGB)
-    st.image(heatmap_rgb, use_column_width=True, caption="Spatial Density Heatmap Overlay (Jet Colormap)")
+    st.image(heatmap_rgb, use_container_width=True, caption="Spatial Density Heatmap Overlay (Jet Colormap)")
 
 st.markdown("---")
 
